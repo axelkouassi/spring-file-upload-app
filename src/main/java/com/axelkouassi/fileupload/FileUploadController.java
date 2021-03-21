@@ -33,7 +33,7 @@ public class FileUploadController {
     }
 
     /*******************************************************************************
-    [GET /] Looks up the current list of uploaded files from the StorageService and
+    [GET /]: Looks up the current list of uploaded files from the StorageService and
     loads it into a Thymeleaf template. It calculates a link to the actual resource
     by using [MvcUriComponentsBuilder].
      ********************************************************************************/
@@ -42,13 +42,18 @@ public class FileUploadController {
 
         model.addAttribute("files", storageService.loadAll()
                 .map(path -> MvcUriComponentsBuilder.
-                        fromMethodName(FileUploadController.class, "serveFile", path.getFileName().toString())
+                        fromMethodName(FileUploadController.class, "serveFile",
+                                path.getFileName().toString())
                         .build().toUri().toString())
                 .collect(Collectors.toList()));
 
         return "uploadForm";
     }
 
+    /*******************************************************************************
+     [GET /files/{filename}]: Loads the resource (if it exists) and sends it to the browser
+     to download by using a [Content-Disposition] response header.
+     ********************************************************************************/
     @GetMapping("/files/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
@@ -58,6 +63,9 @@ public class FileUploadController {
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 
+    /*******************************************************************************
+     [POST /]: Handles a multi-part message file and gives it to the StorageService for saving.
+     ********************************************************************************/
     @PostMapping("/")
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
                                    RedirectAttributes redirectAttributes) {
